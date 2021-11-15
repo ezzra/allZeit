@@ -31,7 +31,7 @@ def get_articles_from_index():
 
 def deal_article(article):
     url = article['href']
-    if url_already_scraped(url):
+    if url_locked(url):
         return
     if article_type_is_excluded(url):
         return
@@ -45,7 +45,7 @@ def deal_article(article):
     lock_url(url)
 
 
-def url_already_scraped(url: str) -> bool:
+def url_locked(url: str) -> bool:
     return os.path.exists(make_url_lock_filepath(url))
 
 
