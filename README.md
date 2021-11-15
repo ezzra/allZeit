@@ -41,7 +41,7 @@ folders that are configured here, will automatically be created.
 
 ## Automatisation
 
-You can just set up a cronjob to regularly run the tool and download all new articles
+You can just set up a cronjob to regularly run the tool and download all new articles.
 
 ```
 $ crontab -l
@@ -52,5 +52,5 @@ $ crontab -l
 
 Please note, that you need to have the permission from **Zeit Online** to scrape 
 their websites automatically. You also should have paid for **Zeit+** because with 
-this scraping tool you are able to download articles before they are put behind 
+this scraping tool you would be able to download articles before they are put behind 
 the Paywall. 
