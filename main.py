@@ -90,8 +90,10 @@ def prepare_target_folder(datestring: str) -> str:
 
 
 def save_article(folder: str, filename: str, text: str):
-    with open(os.path.join(folder, filename), 'w') as file:
+    filepath = os.path.join(folder, filename)
+    with open(filepath, 'w') as file:
         file.write(text)
+    print('->', filepath)
 
 
 def lock_url(url: str) -> None:
