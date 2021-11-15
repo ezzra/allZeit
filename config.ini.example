@@ -1,0 +1,3 @@
+[general]
+download_folder = ~/downloads/zeitlos
+url_lock_folder = ~/downloads/zeitlos/.url_locks
