@@ -3,11 +3,16 @@ import requests
 import re
 import os
 from pathlib import Path
+import configparser
+
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 
 base_url = 'https://www.zeit.de/index'
-download_folder = '_work/downloads'
-path_scraped_urls = os.path.join(download_folder, '.scraped_urls')
+download_folder = config.get('general', 'download_folder')
+url_lock_folder = config.get('general', 'url_lock_folder')
 session = requests.session()
 
 
@@ -45,7 +50,7 @@ def url_already_scraped(url: str) -> bool:
 
 
 def make_url_lock_filepath(url: str) -> str:
-    filepath = os.path.join(path_scraped_urls, url.replace('/', '_'))
+    filepath = os.path.join(url_lock_folder, url.replace('/', '_'))
     return filepath
 
 
@@ -90,7 +95,7 @@ def save_article(folder: str, filename: str, text: str):
 
 
 def lock_url(url: str) -> None:
-    assure_folderpath(path_scraped_urls)
+    assure_folderpath(url_lock_folder)
     url_filepath = make_url_lock_filepath(url)
     Path(url_filepath).touch()
 
