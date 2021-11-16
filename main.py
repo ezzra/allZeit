@@ -11,8 +11,8 @@ config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
 
 base_url = 'https://www.zeit.de/index'
-download_folder = config.get('general', 'download_folder')
-url_lock_folder = config.get('general', 'url_lock_folder')
+download_folder = os.path.expanduser(config.get('general', 'download_folder'))
+url_lock_folder = os.path.expanduser(config.get('general', 'url_lock_folder'))
 session = requests.session()
 
 
