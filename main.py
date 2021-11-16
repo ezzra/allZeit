@@ -4,12 +4,13 @@ import re
 import os
 from pathlib import Path
 import configparser
+import sys
 
 
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
-
+ARGS = sys.argv[1:]
 base_url = 'https://www.zeit.de/index'
 download_folder = os.path.expanduser(config.get('general', 'download_folder'))
 url_lock_folder = os.path.expanduser(config.get('general', 'url_lock_folder'))
@@ -17,9 +18,12 @@ session = requests.session()
 
 
 def main():
+    if ARGS:
+        deal_article(ARGS[0])
+        return
     articles = get_articles_from_index()
     for article in articles:
-        deal_article(article)
+        deal_article(article['href'])
 
 
 def get_articles_from_index():
@@ -29,8 +33,7 @@ def get_articles_from_index():
     return articles
 
 
-def deal_article(article):
-    url = article['href']
+def deal_article(url):
     if url_locked(url):
         return
     if article_type_is_excluded(url):
