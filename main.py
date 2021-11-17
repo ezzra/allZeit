@@ -58,6 +58,8 @@ def deal_article(url):
         datestring, title = get_article_data(response)
     except ArticleNotParsableError as e:
         print(e, file=sys.stderr)
+        lock_url(url)
+        print('INFO: even though locked url for now')
         return
     target_folder = prepare_target_folder(datestring)
     filename = make_filename(datestring, title)
