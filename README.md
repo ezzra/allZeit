@@ -1,4 +1,4 @@
-# ZeitLos
+# allZeit
 
 This is a scraper for articles on **Zeit Online** (https://zeit.de). It does simply 
 scrape all articles that are published on the frontpage and stores them as `.html` 
