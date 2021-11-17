@@ -17,6 +17,19 @@ url_lock_folder = os.path.expanduser(config.get('general', 'url_lock_folder'))
 session = requests.session()
 
 
+class ArticleNotParsableError(Exception):
+    """Exception raised for errors while parsing the article text.
+
+    Attributes:
+        data_name -- data name that could not be parsed
+        message -- explanation of the error
+    """
+
+    def __init__(self, data_name, url):
+        message = f'WARNING: could not parse the data for "{data_name}" in article at: {url}'
+        super().__init__(message)
+
+
 def main():
     if ARGS:
         deal_article(ARGS[0])
@@ -41,7 +54,11 @@ def deal_article(url):
     final_url = get_final_article_url(url)
     print(final_url)
     response = session.get(final_url)
-    datestring, title = get_article_data(response)
+    try:
+        datestring, title = get_article_data(response)
+    except ArticleNotParsableError as e:
+        print(e, file=sys.stderr)
+        return
     target_folder = prepare_target_folder(datestring)
     filename = make_filename(datestring, title)
     save_article(target_folder, filename, response.text)
@@ -73,8 +90,14 @@ def get_final_article_url(url):
 
 def get_article_data(response) -> tuple:
     soup = BeautifulSoup(response.content, 'html.parser')
-    datestring = soup.select('time.metadata__date:nth-child(1), .meta__date')[0]['datetime']
-    title = soup.select('.article-heading__title, .headline__title, .article-header__title')[0].text
+    datestring = soup.select('time.metadata__date:nth-child(1), .meta__date')
+    if not datestring:
+        raise ArticleNotParsableError('datestring', response.url)
+    datestring = datestring[0]['datetime']
+    title = soup.select('.article-heading__title, .headline__title, .article-header__title')
+    if not title:
+        raise ArticleNotParsableError('title', response.url)
+    title = title[0].text
     title = re.sub(r'[\s\W]', '_', title)
     return datestring, title
 
