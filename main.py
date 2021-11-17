@@ -26,7 +26,7 @@ class ArticleNotParsableError(Exception):
     """
 
     def __init__(self, data_name, url):
-        message = f'WARNING: could not parse the data for "{data_name}" in article at: {url}'
+        message = f'WARNING: could not parse the data item "{data_name}" in article at: {url}'
         super().__init__(message)
 
 
