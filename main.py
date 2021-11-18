@@ -81,6 +81,8 @@ def article_type_is_excluded(url: str) -> bool:
         return True
     if url.startswith('https://www.zeit.de/zett'):
         return True
+    if url.startswith('https://www.zeit.de/video'):
+        return True
 
 
 def get_final_article_url(url):
