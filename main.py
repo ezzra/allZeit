@@ -35,7 +35,7 @@ class ArticleNotParsableError(Exception):
         super().__init__(message)
 
 
-Article = namedtuple('Article', 'url image summary published')
+Article = namedtuple('Article', 'url image title summary published')
 Articles = List[Article]
 
 
@@ -70,7 +70,7 @@ def parse_feed_item(entry: feedparser.FeedParserDict) -> Article:
         image = entry['links'][1]['href']
     else:
         image = None
-    article = Article(entry['link'], image, entry['summary'], published_time)
+    article = Article(entry['link'], image, entry['title'], entry['summary'], published_time)
     return article
 
 
@@ -82,15 +82,8 @@ def deal_article(article: Article):
     final_url = get_final_article_url(article.url)
     print(final_url)
     response = session.get(final_url)
-    try:
-        datestring, title = get_article_data(response)
-    except ArticleNotParsableError as e:
-        print(e, file=sys.stderr)
-        lock_url(article.url)
-        print('INFO: even though locked url for now')
-        return
-    target_folder = prepare_target_folder(datestring)
-    filename = make_filename(datestring, title)
+    target_folder = prepare_target_folder(article.published)
+    filename = make_filename(article.published, article.title)
     save_article(target_folder, filename, response.text)
     lock_url(article.url)
 
@@ -134,14 +127,14 @@ def get_article_data(response) -> tuple:
     return datestring, title
 
 
-def make_filename(datestring, title):
-    filename = f'{datestring}__{title}.html'
+def make_filename(published: datetime, title):
+    sanitized_title = re.sub(r'[\s\W]', '_', title)
+    filename = f'{published.strftime("%Y-%m-%d_%H-%M")}__{sanitized_title}.html'
     return filename
 
 
-def prepare_target_folder(datestring: str) -> str:
-    month_folder = datestring.split('-')
-    month_folder = f'{month_folder[0]}-{month_folder[1]}'
+def prepare_target_folder(published: datetime) -> str:
+    month_folder = f'{published.year}-{published.month}'
     month_folder = os.path.join(download_folder, month_folder)
     assure_folderpath(month_folder)
     return month_folder
