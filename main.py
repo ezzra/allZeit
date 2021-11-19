@@ -48,13 +48,6 @@ def main():
         deal_article(article)
 
 
-def get_articles_from_index():
-    response = session.get(base_url)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    articles = soup.select('article > a.zon-teaser-standard__faux-link, article > a.zon-teaser-lead__faux-link, article > a.zon-teaser-poster__faux-link')
-    return articles
-
-
 def get_articles_from_feed() -> Articles:
     NewsFeed = feedparser.parse("https://newsfeed.zeit.de")
     articles = list()
@@ -111,20 +104,6 @@ def get_final_article_url(url):
     if head.status_code == 200:
         return url + '/komplettansicht'
     return url
-
-
-def get_article_data(response) -> tuple:
-    soup = BeautifulSoup(response.content, 'html.parser')
-    datestring = soup.select('time.metadata__date:nth-child(1), .meta__date')
-    if not datestring:
-        raise ArticleNotParsableError('datestring', response.url)
-    datestring = datestring[0]['datetime']
-    title = soup.select('.article-heading__title, .headline__title, .article-header__title')
-    if not title:
-        raise ArticleNotParsableError('title', response.url)
-    title = title[0].text
-    title = re.sub(r'[\s\W]', '_', title)
-    return datestring, title
 
 
 def make_filename(published: datetime, title):
