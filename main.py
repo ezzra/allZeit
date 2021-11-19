@@ -59,14 +59,19 @@ def get_articles_from_feed() -> Articles:
     NewsFeed = feedparser.parse("https://newsfeed.zeit.de")
     articles = list()
     for entry in NewsFeed['entries']:
-        published_time = datetime.fromtimestamp(mktime(entry['published_parsed']))
-        if len(entry['links']) > 1:
-            image = entry['links'][1]['href']
-        else:
-            image = None
-        article = Article(entry['link'], image, entry['summary'], published_time)
+        article = parse_feed_item(entry)
         articles.append(article)
     return articles
+
+
+def parse_feed_item(entry: feedparser.FeedParserDict) -> Article:
+    published_time = datetime.fromtimestamp(mktime(entry['published_parsed']))
+    if len(entry['links']) > 1:
+        image = entry['links'][1]['href']
+    else:
+        image = None
+    article = Article(entry['link'], image, entry['summary'], published_time)
+    return article
 
 
 def deal_article(article: Article):
