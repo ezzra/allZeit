@@ -6,6 +6,9 @@ from pathlib import Path
 import configparser
 import sys
 import feedparser
+from time import mktime
+from datetime import datetime
+
 
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
@@ -30,11 +33,12 @@ class ArticleNotParsableError(Exception):
         super().__init__(message)
 
 
+
 def main():
     if ARGS:
         deal_article(ARGS[0])
         return
-    articles = get_articles_from_index()
+    articles = get_articles_from_feed()
     for article in articles:
         deal_article(article['href'])
 
@@ -50,9 +54,8 @@ def get_articles_from_feed():
     NewsFeed = feedparser.parse("https://newsfeed.zeit.de")
     articles = list()
     for entry in NewsFeed['entries']:
-        print(type(entry))
-        exit()
-        article = Article(entry['link'], entry['links'][1]['href'])
+        published_time = datetime.fromtimestamp(mktime(entry['published_parsed']))
+        article = Article(entry['link'], entry['links'][1]['href'], entry['summary'], published_time)
         articles.append(article)
     return articles
 
