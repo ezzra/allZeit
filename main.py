@@ -70,7 +70,7 @@ def parse_feed_item(entry: feedparser.FeedParserDict) -> Article:
 def deal_article(article: Article):
     if url_locked(article.url):
         return
-    if article_type_is_excluded(article.url):
+    if article_type_is_excluded(article):
         return
     final_url = get_final_article_url(article.url)
     print(final_url)
@@ -90,12 +90,12 @@ def make_url_lock_filepath(url: str) -> str:
     return filepath
 
 
-def article_type_is_excluded(url: str) -> bool:
-    if not url.startswith('https://www.zeit.de'):
+def article_type_is_excluded(article: Article) -> bool:
+    if not article.url.startswith('https://www.zeit.de'):
         return True
-    if url.startswith('https://www.zeit.de/zett'):
+    if article.url.startswith('https://www.zeit.de/zett'):
         return True
-    if url.startswith('https://www.zeit.de/video'):
+    if article.url.startswith('https://www.zeit.de/video'):
         return True
 
 
