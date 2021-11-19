@@ -8,6 +8,8 @@ import sys
 import feedparser
 from time import mktime
 from datetime import datetime
+from collections import namedtuple
+from typing import List
 
 
 config = configparser.ConfigParser()
@@ -33,6 +35,9 @@ class ArticleNotParsableError(Exception):
         super().__init__(message)
 
 
+Article = namedtuple('Article', 'url image summary published')
+Articles = List[Article]
+
 
 def main():
     if ARGS:
@@ -40,7 +45,7 @@ def main():
         return
     articles = get_articles_from_feed()
     for article in articles:
-        deal_article(article['href'])
+        deal_article(article)
 
 
 def get_articles_from_index():
@@ -50,35 +55,39 @@ def get_articles_from_index():
     return articles
 
 
-def get_articles_from_feed():
+def get_articles_from_feed() -> Articles:
     NewsFeed = feedparser.parse("https://newsfeed.zeit.de")
     articles = list()
     for entry in NewsFeed['entries']:
         published_time = datetime.fromtimestamp(mktime(entry['published_parsed']))
-        article = Article(entry['link'], entry['links'][1]['href'], entry['summary'], published_time)
+        if len(entry['links']) > 1:
+            image = entry['links'][1]['href']
+        else:
+            image = None
+        article = Article(entry['link'], image, entry['summary'], published_time)
         articles.append(article)
     return articles
 
 
-def deal_article(url):
-    if url_locked(url):
+def deal_article(article: Article):
+    if url_locked(article.url):
         return
-    if article_type_is_excluded(url):
+    if article_type_is_excluded(article.url):
         return
-    final_url = get_final_article_url(url)
+    final_url = get_final_article_url(article.url)
     print(final_url)
     response = session.get(final_url)
     try:
         datestring, title = get_article_data(response)
     except ArticleNotParsableError as e:
         print(e, file=sys.stderr)
-        lock_url(url)
+        lock_url(article.url)
         print('INFO: even though locked url for now')
         return
     target_folder = prepare_target_folder(datestring)
     filename = make_filename(datestring, title)
     save_article(target_folder, filename, response.text)
-    lock_url(url)
+    lock_url(article.url)
 
 
 def url_locked(url: str) -> bool:
