@@ -9,6 +9,7 @@ verify_ssl = true
 bs4 = "*"
 requests = "*"
 pywebcopy = "~=6.3"
+feedparser = "*"
 
 [requires]
 python_version = "3.6"

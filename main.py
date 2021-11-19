@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import configparser
 import sys
-
+import feedparser
 
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
@@ -43,6 +43,17 @@ def get_articles_from_index():
     response = session.get(base_url)
     soup = BeautifulSoup(response.content, 'html.parser')
     articles = soup.select('article > a.zon-teaser-standard__faux-link, article > a.zon-teaser-lead__faux-link, article > a.zon-teaser-poster__faux-link')
+    return articles
+
+
+def get_articles_from_feed():
+    NewsFeed = feedparser.parse("https://newsfeed.zeit.de")
+    articles = list()
+    for entry in NewsFeed['entries']:
+        print(type(entry))
+        exit()
+        article = Article(entry['link'], entry['links'][1]['href'])
+        articles.append(article)
     return articles
 
 
