@@ -1,3 +1,2 @@
 [general]
 download_folder = ~/downloads/allzeit
-url_lock_folder = ~/downloads/allzeit/.url_locks

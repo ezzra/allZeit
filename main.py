@@ -1,13 +1,8 @@
 import requests
 import os
-from pathlib import Path
 import configparser
 import sys
 import feedparser
-from time import mktime
-from datetime import datetime
-from collections import namedtuple
-from typing import List
 from urllib.parse import urlparse
 from pathlib import PurePosixPath
 from shutil import copyfile
@@ -19,7 +14,6 @@ config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 ARGS = sys.argv[1:]
 base_url = 'https://www.zeit.de/index'
 download_folder = os.path.expanduser(config.get('general', 'download_folder'))
-url_lock_folder = os.path.expanduser(config.get('general', 'url_lock_folder'))
 session = requests.session()
 
 
@@ -43,22 +37,12 @@ def get_urls_from_feed() -> list:
 
 
 def process_article(url: str):
-    if url_locked(url):
-        return
     if article_type_is_excluded(url):
         return
     filepath = get_filepath_from_url(url)
+    if os.path.exists(filepath):
+        return
     save_article(url, filepath)
-    lock_url(url)
-
-
-def url_locked(url: str) -> bool:
-    return os.path.exists(make_url_lock_filepath(url))
-
-
-def make_url_lock_filepath(url: str) -> str:
-    filepath = os.path.join(url_lock_folder, url.replace('/', '_'))
-    return filepath
 
 
 def article_type_is_excluded(url) -> bool:
@@ -103,12 +87,6 @@ def save_article(article_url: str, filepath: str):
         file.write(response.text)
     print(final_url)
     print('->', filepath)
-
-
-def lock_url(url: str) -> None:
-    assure_folderpath(url_lock_folder)
-    url_filepath = make_url_lock_filepath(url)
-    Path(url_filepath).touch()
 
 
 def assure_folderpath(folder_path: str) -> None:
