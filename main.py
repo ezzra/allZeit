@@ -23,61 +23,33 @@ url_lock_folder = os.path.expanduser(config.get('general', 'url_lock_folder'))
 session = requests.session()
 
 
-class ArticleNotParsableError(Exception):
-    """Exception raised for errors while parsing the article text.
-
-    Attributes:
-        data_name -- data name that could not be parsed
-        message -- explanation of the error
-    """
-
-    def __init__(self, data_name, url):
-        message = f'WARNING: could not parse the data item "{data_name}" in article at: {url}'
-        super().__init__(message)
-
-
-Article = namedtuple('Article', 'url image title summary published')
-Articles = List[Article]
-
-
 def main():
     assure_folderpath(download_folder)
     assure_htaccess()
     if ARGS:
-        deal_article(ARGS[0])
+        process_article(ARGS[0])
         return
-    articles = get_articles_from_feed()
-    for article in articles:
-        deal_article(article)
+    urls = get_urls_from_feed()
+    for url in urls:
+        process_article(url)
 
 
-def get_articles_from_feed() -> Articles:
+def get_urls_from_feed() -> list:
     NewsFeed = feedparser.parse("https://newsfeed.zeit.de")
-    articles = list()
+    urls = list()
     for entry in NewsFeed['entries']:
-        article = parse_feed_item(entry)
-        articles.append(article)
-    return articles
+        urls.append(entry['link'])
+    return urls
 
 
-def parse_feed_item(entry: feedparser.FeedParserDict) -> Article:
-    published_time = datetime.fromtimestamp(mktime(entry['published_parsed']))
-    if len(entry['links']) > 1:
-        image = entry['links'][1]['href']
-    else:
-        image = None
-    article = Article(entry['link'], image, entry['title'], entry['summary'], published_time)
-    return article
-
-
-def deal_article(article: Article):
-    if url_locked(article.url):
+def process_article(url: str):
+    if url_locked(url):
         return
-    if article_type_is_excluded(article):
+    if article_type_is_excluded(url):
         return
-    filepath = get_filepath_from_url(article.url)
-    save_article(article.url, filepath)
-    lock_url(article.url)
+    filepath = get_filepath_from_url(url)
+    save_article(url, filepath)
+    lock_url(url)
 
 
 def url_locked(url: str) -> bool:
@@ -89,12 +61,12 @@ def make_url_lock_filepath(url: str) -> str:
     return filepath
 
 
-def article_type_is_excluded(article: Article) -> bool:
-    if not article.url.startswith('https://www.zeit.de'):
+def article_type_is_excluded(url) -> bool:
+    if not url.startswith('https://www.zeit.de'):
         return True
-    if article.url.startswith('https://www.zeit.de/zett'):
+    if url.startswith('https://www.zeit.de/zett'):
         return True
-    if article.url.startswith('https://www.zeit.de/video'):
+    if url.startswith('https://www.zeit.de/video'):
         return True
 
 
