@@ -75,13 +75,8 @@ def deal_article(article: Article):
         return
     if article_type_is_excluded(article):
         return
-    final_url = get_final_article_url(article.url)
-    print(final_url)
-    response = session.get(final_url)
-    url_path = get_path_from_url(article.url)
-    target_folder = prepare_target_folder(url_path)
-    filename = url_path[-1] + '.html'
-    save_article(target_folder, filename, response.text)
+    filepath = get_filepath_from_url(article.url)
+    save_article(article.url, filepath)
     lock_url(article.url)
 
 
@@ -117,18 +112,24 @@ def prepare_target_folder(url_path) -> str:
     return folder_path
 
 
-def get_path_from_url(url):
+def get_filepath_from_url(url):
     url_path = urlparse(url).path
-    path = PurePosixPath(url_path).parts
+    path = PurePosixPath(url_path).parts[1:]
     if path[-1] == 'komplettansicht':
         path = path[:1]
-    return path[1:]
+    folder_path = path[:-1]
+    filename = path[-1] + '.html'
+    return os.path.join(*folder_path, filename)
 
 
-def save_article(folder: str, filename: str, content: str):
-    filepath = os.path.join(folder, filename)
-    with open(filepath, 'w') as file:
-        file.write(content)
+def save_article(article_url: str, filepath: str):
+    final_url = get_final_article_url(article_url)
+    response = session.get(final_url)
+    final_filepath = os.path.join(download_folder, filepath)
+    assure_folderpath(os.path.dirname(final_filepath))
+    with open(final_filepath, 'w') as file:
+        file.write(response.text)
+    print(final_url)
     print('->', filepath)
 
 
