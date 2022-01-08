@@ -77,7 +77,7 @@ def deal_article(article: Article):
     response = session.get(final_url)
     url_path = get_path_from_url(article.url)
     target_folder = prepare_target_folder(url_path)
-    filename = url_path[-1]
+    filename = url_path[-1] + '.html'
     save_article(target_folder, filename, response.text)
     lock_url(article.url)
 
