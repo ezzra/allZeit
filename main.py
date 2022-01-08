@@ -40,7 +40,7 @@ def process_article(url: str):
     if article_type_is_excluded(url):
         return
     filepath = get_filepath_from_url(url)
-    if os.path.exists(filepath):
+    if os.path.exists(os.path.join(download_folder, filepath)):
         return
     save_article(url, filepath)
 
