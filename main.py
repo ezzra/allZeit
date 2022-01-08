@@ -10,6 +10,8 @@ from time import mktime
 from datetime import datetime
 from collections import namedtuple
 from typing import List
+from urllib.parse import urlparse
+from pathlib import PurePosixPath
 
 
 config = configparser.ConfigParser()
@@ -75,8 +77,9 @@ def deal_article(article: Article):
     final_url = get_final_article_url(article.url)
     print(final_url)
     response = session.get(final_url)
-    target_folder = prepare_target_folder(article.published)
-    filename = make_filename(article.published, article.title)
+    url_path = get_path_from_url(article.url)
+    target_folder = prepare_target_folder(url_path)
+    filename = url_path[-1]
     save_article(target_folder, filename, response.text)
     lock_url(article.url)
 
@@ -106,23 +109,25 @@ def get_final_article_url(url):
     return url
 
 
-def make_filename(published: datetime, title):
-    sanitized_title = re.sub(r'[\s\W]', '_', title)
-    filename = f'{published.strftime("%Y-%m-%d_%H-%M")}__{sanitized_title}.html'
-    return filename
+def prepare_target_folder(url_path) -> str:
+    folder_path = os.path.join(download_folder, *url_path[:-1])
+    print(folder_path)
+    assure_folderpath(folder_path)
+    return folder_path
 
 
-def prepare_target_folder(published: datetime) -> str:
-    month_folder = f'{published.year}-{published.month}'
-    month_folder = os.path.join(download_folder, month_folder)
-    assure_folderpath(month_folder)
-    return month_folder
+def get_path_from_url(url):
+    url_path = urlparse(url).path
+    path = PurePosixPath(url_path).parts
+    if path[-1] == 'komplettansicht':
+        path = path[:1]
+    return path[1:]
 
 
-def save_article(folder: str, filename: str, text: str):
+def save_article(folder: str, filename: str, content: str):
     filepath = os.path.join(folder, filename)
     with open(filepath, 'w') as file:
-        file.write(text)
+        file.write(content)
     print('->', filepath)
 
 
