@@ -10,6 +10,7 @@ from collections import namedtuple
 from typing import List
 from urllib.parse import urlparse
 from pathlib import PurePosixPath
+from shutil import copyfile
 
 
 config = configparser.ConfigParser()
@@ -40,6 +41,8 @@ Articles = List[Article]
 
 
 def main():
+    assure_folderpath(download_folder)
+    assure_htaccess()
     if ARGS:
         deal_article(ARGS[0])
         return
@@ -138,6 +141,14 @@ def lock_url(url: str) -> None:
 def assure_folderpath(folder_path: str) -> None:
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
+
+
+def assure_htaccess():
+    htaccess_path = os.path.join(download_folder, '.htaccess')
+    if os.path.exists(htaccess_path):
+        return
+    example_htaccess_path = os.path.join(os.path.dirname(__file__), 'htaccess.example')
+    copyfile(example_htaccess_path, htaccess_path)
 
 
 if __name__ == '__main__':
