@@ -1,6 +1,4 @@
-from bs4 import BeautifulSoup
 import requests
-import re
 import os
 from pathlib import Path
 import configparser
